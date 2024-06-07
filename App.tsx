@@ -9,6 +9,7 @@ import Dashboard4 from './app/screens/Old/Dashboard4';
 import Dashboard5 from './app/screens/Old/Dashboard5';
 import Dashboard6 from './app/screens/Old/Dashboard6';
 import DashboardYoung from './app/screens/Other/DashboardYoung';
+import BeforeRegister from './app/screens/All/BeforeRegister';
 import Register from "./app/screens/Old/Register"
 import MeetingYoung from "./app/screens/Other/MeetingYoung"
 import ListYoung from './app/screens/Other/ListYoung';
@@ -29,16 +30,14 @@ import AddInfos from './app/screens/Old/AddInfos';
 import AddInfos2 from './app/screens/Old/AddInfos2';
 import MyRequest from './app/screens/Old/MyRequest';
 import PersonDetails from './app/screens/Old/PersonDetails';
-import Documents from './app/screens/Old/Documents';
-import Identity from './app/screens/Old/Identity';
-import IdentityCard from './app/screens/Old/IdentityCard';
-import Passport from './app/screens/Old/Passport';
-import Insee from './app/screens/Old/Insee';
-import Crime from './app/screens/Old/Crime';
 import ProfileComplete from './app/screens/Old/ProfileComplete';
-import RIB from './app/screens/Old/RIB';
 import MeetingDetails from './app/screens/Old/MeetingDetails';
 import DeleteVisit from './app/screens/Old/DeleteVisit';
+import RegisterHelper from './app/screens/Helper/Register';
+import BeforeRegisterRelative from './app/screens/Helper/BeforeRegisterRelative';
+import RegisterRelative from './app/screens/Helper/RegisterRelative';
+import AddInfosRelative from './app/screens/Helper/AddInfosRelative';
+import AddInfosRealtive2 from './app/screens/Helper/AddInfosRelative2';
 
 const Stack = createNativeStackNavigator();
 
@@ -50,16 +49,13 @@ const App = () => {
         <Stack.Screen name="FirstPage" component={FirstPage} options={{ headerShown: false }} />
         <Stack.Screen name="AccountCreated" component={AccountCreated} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }}/>
+        <Stack.Screen name="BeforeRegister" component={BeforeRegister} options={{ title: '' }}/>
+        <Stack.Screen name="BeforeRegisterRelative" component={BeforeRegisterRelative} options={{ title: '' }}/>
         <Stack.Screen name="Register" component={Register} options={{ title: 'Créer un nouveau compte', headerBackTitleVisible: false }} />
+        <Stack.Screen name="RegisterHelper" component={RegisterHelper} options={{ title: 'Créer un nouveau compte' }} />
+        <Stack.Screen name="RegisterRelative" component={RegisterRelative} options={{ title: 'Votre proche' }} />
         <Stack.Screen name="Dashboard" component={Dashboard} options={{ headerShown: false }}/>
-        <Stack.Screen name="Documents" component={Documents} options={{ title: 'Charger les documents' , headerBackTitleVisible: false }}/>
         <Stack.Screen name="MyRequest" component={MyRequest} options={{ title: 'Ma demande' , headerBackTitleVisible: false }}/>
-        <Stack.Screen name="Identity" component={Identity} options={{ title: 'Document d\'identité', headerBackTitleVisible: false  }}/>
-        <Stack.Screen name="IdentityCard" component={IdentityCard} options={{ title: 'Carte d\'identité' , headerBackTitleVisible: false }}/>
-        <Stack.Screen name="Passport" component={Passport} options={{ title: 'Passeport', headerBackTitleVisible: false  }}/>
-        <Stack.Screen name="Insee" component={Insee} options={{ title: 'Déclaration Insee ou Kbis', headerBackTitleVisible: false }}/>
-        <Stack.Screen name="Crime" component={Crime} options={{ title: 'Casier judiciaire', headerBackTitleVisible: false  }}/>
-        <Stack.Screen name="RIB" component={RIB} options={{ title: 'RIB', headerBackTitleVisible: false  }}/>
         <Stack.Screen 
           name="Dashboard2" 
           component={Dashboard2} 
@@ -97,7 +93,14 @@ const App = () => {
         <Stack.Screen name="EditAnnonceOld" component={EditAnnonceOld} />
         <Stack.Screen name="EmailSent" component={EMailSent} />
         <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-        <Stack.Screen name="ChatPage" component={ChatPage} options={{ title: 'Michèle', headerBackTitleVisible: false }}/>
+        <Stack.Screen
+          name="ChatPage"
+          component={ChatPage}
+          options={({ route }) => ({
+            title: route.params?.recipientName ? route.params.recipientName : 'Chat',
+            headerBackTitleVisible: false
+          })}
+        />
         <Stack.Screen name="Calendar" component={Calendar}/>
       </Stack.Navigator>
     </NavigationContainer>

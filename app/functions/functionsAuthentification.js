@@ -81,7 +81,7 @@ export const checkAccountExistence = async (uid) => {
     try {
         // Créer une requête pour récupérer les documents de la collection 'users' où uid correspond à la valeur donnée
         console.log('Checking account existence for UID:', uid);
-        const q = query(collection(db, 'youngs'), where('uid', '==', uid));
+        const q = query(collection(db, 'olds'), where('uid', '==', uid));
         
         // Exécuter la requête
         const querySnapshot = await getDocs(q);
@@ -165,7 +165,10 @@ export const signIn = async (navigation, email, password, setLoading) => {
 
     setLoading(true);
     try {
+        console.log('Before signInWithEmailAndPassword');
         const response = await signInWithEmailAndPassword(auth, email, password);
+        console.log(response.user.uid);
+        console.log('Full response object:', response.user);
 
         // Vérifiez si le compte existe
         const accountExists = await checkAccountExistence(response.user.uid);
@@ -173,7 +176,7 @@ export const signIn = async (navigation, email, password, setLoading) => {
 
         if (accountExists) {
             // Effectuez une requête pour trouver le document correspondant à l'UID de l'utilisateur
-            const usersCollection = collection(db, 'youngs');
+            const usersCollection = collection(db, 'olds');
             const userQuery = query(usersCollection, where('uid', '==', response.user.uid));
             const userQuerySnapshot = await getDocs(userQuery);
 
@@ -200,7 +203,8 @@ export const signIn = async (navigation, email, password, setLoading) => {
     }
 };
 
-export const signUp = async (firstName, lastName, phone, email, address, lat, long, password, setLoading) => {
+
+export const signUp = async (firstName, lastName, phone, email, address, lat, long, password, setLoading, navigation) => {
     const db = FIREBASE_DB
     const auth = FIREBASE_AUTH
     setLoading(true);
@@ -209,7 +213,7 @@ export const signUp = async (firstName, lastName, phone, email, address, lat, lo
     const response = await createUserWithEmailAndPassword(auth, email, password);
 
     // Créer un document dans la collection "users" avec des données supplémentaires
-    const userDocRef = await addDoc(collection(db, 'youngs'), {
+    const userDocRef = await addDoc(collection(db, 'olds'), {
         uid: response.user.uid,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -221,6 +225,7 @@ export const signUp = async (firstName, lastName, phone, email, address, lat, lo
     });
 
     Alert.alert('Account created successfully!');
+    navigation.navigate('Login')
     } catch (error) {
     console.error(error);
     Alert.alert('Sign up failed', error.message);

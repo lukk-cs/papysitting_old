@@ -75,7 +75,7 @@ const Login = () => {
 
             <View style={styles.rowContainer}>
               <Text style={stylesLogin.textNoAccount}>Pas encore de compte ? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <TouchableOpacity onPress={() => navigation.navigate('BeforeRegister')}>
                 <Text style={stylesLogin.textRegister}>S'inscrire</Text>
               </TouchableOpacity>
             </View>

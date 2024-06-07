@@ -113,6 +113,7 @@ const HomeScreen = () => {
         });
       }
     }
+    console.log('MEETINGS : ', fetchedMeetings)
     let filteredFetchedMeetings = await filterObsoleteDaysNextVisits(fetchedMeetings);
     setMeetings(filteredFetchedMeetings.length > 0 ? filteredFetchedMeetings : []);
     setHasMadeRequest(filteredFetchedMeetings.length > 0);
@@ -137,7 +138,7 @@ const HomeScreen = () => {
     // Construire la chaîne de caractères formatée
     sortedDays.forEach(day => {
       const hour = availability[day][0]; // différence entre formatAvailability et formatAvailability2, c'est juste qu'on l'applique pas aux memes dictionnaires
-      formattedAvailability += `${day} : ${hour}h\n`;
+      formattedAvailability += `${day} : ${hour}h, `;
     });
     return formattedAvailability;
   };

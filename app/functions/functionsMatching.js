@@ -70,7 +70,6 @@ export const filterOldsByAvailability = async (youngAvailability, oldsList) => {
     return matchingOlds;
 };
 
-
 // Fonction pour filtrer les vieux en fonction de la distance
 export const filterOldsByDistance = async (youngLocation, oldsList, maxDistance) => {
     const nearbyOlds = [];
@@ -229,7 +228,6 @@ export const createMatchingDoc = async (uid_young, uid_old, availability) => {
 };
 
 
-
 // Fonction pour vérifier si un jour est passé par rapport à la date actuelle
 const isPastDay = (day) => {
     const today = new Date();
@@ -264,6 +262,11 @@ export const filterObsoleteDays = (oldsList) => {
       const beginDay = (beginDate.getDay() + 6) % 7; // Ajuster pour que lundi soit 0
       const daysToRemove = [];
 
+      // Calculer la différence en millisecondes entre beginDate et currentDate
+      const millisecondsInOneDay = 1000 * 60 * 60 * 24;
+      const differenceInMilliseconds = currentDate - beginDate;
+      const differenceInDays = differenceInMilliseconds / millisecondsInOneDay;
+
       // Parcourir les jours de la semaine dans la demande
       for (const day in old.hours) {
         if (old.hours.hasOwnProperty(day)) {
@@ -271,8 +274,10 @@ export const filterObsoleteDays = (oldsList) => {
           const dayIndex = daysOfWeek.indexOf(dayName);
           if (dayIndex === -1) continue;
 
-          // Supprimer les jours de la semaine avant la date de début ou avant le jour actuel si la date de début est passée
-          if ((beginDate <= currentDate && dayIndex < currentDay) || (beginDate > currentDate && dayIndex < beginDay)) {
+          // Supprimer les jours de la semaine avant la date de début ou avant le jour actuel si la date de début est passée depuis 7 jours
+          if (differenceInDays > 7 || (beginDate <= currentDate && dayIndex < currentDay)) {
+            console.log('deleted day : ', day)
+            console.log(currentDate, beginDate, dayIndex, beginDay)
             daysToRemove.push(day);
           }
         }
@@ -287,64 +292,65 @@ export const filterObsoleteDays = (oldsList) => {
   });
 };
 
+
 // Fonction pour filtrer les jours obsolètes dans les demandes de visites ponctuelles
 export const filterObsoleteDaysNextVisits = async (fetchedMeetings) => {
-    const currentDate = new Date();
-    const currentDay = (currentDate.getDay() + 6) % 7; // Ajuster pour que lundi soit 0
-    const daysOfWeek = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-  
-    const db = FIREBASE_DB; // Remplacez par votre instance Firebase
-  
-    for (const meeting of fetchedMeetings) {
-      if (meeting.freq === 'ponctuelle') {
-        const beginDate = new Date(meeting.begin);
-        const beginDay = (beginDate.getDay() + 6) % 7; // Ajuster pour que lundi soit 0
-        const daysToRemove = [];
-  
-        // Parcourir les jours de la semaine dans la demande
-        for (const day in meeting.availability) {
-          if (meeting.availability.hasOwnProperty(day)) {
-            const dayName = day.split(' ')[0]; // Extraire le jour de la semaine
-            const dayIndex = daysOfWeek.indexOf(dayName);
-            if (dayIndex === -1) continue;
-  
-            // Supprimer les jours de la semaine avant la date de début ou avant le jour actuel si la date de début est passée
-            if ((beginDate <= currentDate && dayIndex < currentDay) || (beginDate > currentDate && dayIndex < beginDay)) {
-              daysToRemove.push(day);
-            }
+  const currentDate = new Date();
+  const currentDay = (currentDate.getDay() + 6) % 7; // Ajuster pour que lundi soit 0
+  const daysOfWeek = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  const db = FIREBASE_DB; // Remplacez par votre instance Firebase
+
+  for (const meeting of fetchedMeetings) {
+    if (meeting.freq === 'ponctuelle') {
+      const beginDate = new Date(meeting.begin);
+      const beginDay = (beginDate.getDay() + 6) % 7; // Ajuster pour que lundi soit 0
+      const daysToRemove = [];
+
+      // Calculer la différence en millisecondes entre beginDate et currentDate
+      const millisecondsInOneDay = 1000 * 60 * 60 * 24;
+      const differenceInMilliseconds = currentDate - beginDate;
+      const differenceInDays = differenceInMilliseconds / millisecondsInOneDay;
+
+      // Parcourir les jours de la semaine dans la demande
+      for (const day in meeting.availability) {
+        if (meeting.availability.hasOwnProperty(day)) {
+          const dayName = day.split(' ')[0]; // Extraire le jour de la semaine
+          const dayIndex = daysOfWeek.indexOf(dayName);
+          if (dayIndex === -1) continue;
+
+          // Supprimer les jours de la semaine avant la date de début ou avant le jour actuel si la date de début est passée depuis 7 jours
+          if (differenceInDays > 7 || (beginDate <= currentDate && dayIndex < currentDay)) {
+            daysToRemove.push(day);
           }
         }
-  
-        // Supprimer les jours obsolètes de la demande dans la base de données Firebase
-        for (const dayToRemove of daysToRemove) {
-          delete meeting.availability[dayToRemove];
-        }
-  
-        console.log('AVAILABILITY : ', meeting.availability);
-        // Si meeting.availability est vide, supprimer toute la collection matchings
-        if (Object.keys(meeting.availability).length === 0) {
-          console.log('1');
-          const matchingsRef = collection(db, 'matchings');
-          const matchingDocRef = doc(matchingsRef, meeting.id);
-          await deleteDoc(matchingDocRef); // Utiliser deleteDoc correctement
-        } else {
-          // Mettre à jour les documents dans la collection matchings
-          const matchingsRef = collection(db, 'matchings');
-          const matchingDocRef = doc(matchingsRef, meeting.id);
-          await updateDoc(matchingDocRef, {
-            availability: meeting.availability
-          });
-        }
+      }
+
+      // Supprimer les jours obsolètes de la demande dans la base de données Firebase
+      for (const dayToRemove of daysToRemove) {
+        delete meeting.availability[dayToRemove];
+      }
+
+      // Si meeting.availability est vide, supprimer toute la collection matchings
+      if (Object.keys(meeting.availability).length === 0) {
+        const matchingsRef = collection(db, 'matchings');
+        const matchingDocRef = doc(matchingsRef, meeting.id);
+        await deleteDoc(matchingDocRef);
+      } else {
+        // Mettre à jour les documents dans la collection matchings
+        const matchingsRef = collection(db, 'matchings');
+        const matchingDocRef = doc(matchingsRef, meeting.id);
+        await updateDoc(matchingDocRef, {
+          availability: meeting.availability
+        });
       }
     }
-  
-    // Filtrer les réunions après la mise à jour
-    fetchedMeetings = fetchedMeetings.filter(meeting => Object.keys(meeting.availability).length > 0);
-  
-    return fetchedMeetings;
-  };
-  
-  
+  }
+
+  // Filtrer les réunions après la mise à jour
+  fetchedMeetings = fetchedMeetings.filter(meeting => Object.keys(meeting.availability).length > 0);
+
+  return fetchedMeetings;
+};
   
 
 export const fetchMatchingOlds = async (
@@ -439,9 +445,11 @@ export const fetchMatchingOlds = async (
                 }
             });
 
+            console.log('OLDS : ', oldsList)
             // Filtrage des annonces obsolètes
             let filteredOldsList = filterObsoleteByDate(oldsList);
             filteredOldsList = filterObsoleteDays(filteredOldsList);
+            console.log('FILTERED OLDS : ', filteredOldsList)
 
 
             const matchingOlds = await proposeMatchingOlds(youngAvailability, youngLocation, filteredOldsList, 10000000000000000000);
@@ -452,7 +460,7 @@ export const fetchMatchingOlds = async (
                 const data = doc.data();
                 if (data.declined && data.declined.includes(currentUserUid)) {
                 declinedOlds.push(doc.id);
-                //console.log('Annonce déclinée:', doc.id);
+                console.log('Annonce déclinée:', doc.id);
                 }
             });
 
